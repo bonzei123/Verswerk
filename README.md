@@ -23,60 +23,54 @@ Dev-Server: [http://localhost:3847](http://localhost:3847)
 Port **6997**. Produktion nutzt das Image aus dem GitHub Container Registry:
 
 ```bash
-docker compose pull
+git clone https://github.com/bonzei123/Verswerk.git
+cd Verswerk
 docker compose up -d
-```
-
-Lokal ohne Registry (baut auf der Maschine):
-
-```bash
-docker compose up --build -d
 ```
 
 Dann `http://<nas-ip>:6997`.
 
-## Auto-Deploy (Push → NAS)
-
-Bei jedem Push auf `main` baut GitHub Actions das Image und pusht es nach `ghcr.io/bonzei123/verswerk:latest`. Optional startet danach ein SSH-Deploy auf dem Synology neu.
-
-### 1. Einmalig auf dem NAS
+Lokal ohne Registry (baut auf der Maschine):
 
 ```bash
-# z.B. /volume1/docker/verswerk
-git clone https://github.com/bonzei123/Verswerk.git
-cd Verswerk
-docker compose pull
+docker compose up --build -d verswerk
+```
+
+## Auto-Update ohne öffentliches SSH
+
+Das NAS ist nur im Heimnetz/VPN erreichbar — GitHub kann also nicht per SSH reinkommen. Stattdessen:
+
+1. **Push auf `main`** → GitHub Actions baut und pusht `ghcr.io/bonzei123/verswerk:latest`
+2. **Watchtower auf dem NAS** (im `docker-compose.yml`) prüft alle 5 Minuten GHCR und startet Verswerk neu, wenn ein neues Image da ist
+
+```bash
 docker compose up -d
 ```
 
-SSH für den Deploy-User aktivieren (Systemsteuerung → Terminal & SNMP → SSH).
+Das startet `verswerk` + `verswerk-watchtower`.
 
-### 2. GitHub Secrets & Variable
+### GHCR-Package öffentlich machen (einmalig)
 
-Repo → **Settings → Secrets and variables → Actions**:
+Nach dem ersten erfolgreichen Build:
 
-| Name | Typ | Inhalt |
-| --- | --- | --- |
-| `ENABLE_NAS_DEPLOY` | **Variable** | `true` |
-| `SYNOLOGY_HOST` | Secret | NAS-IP oder Hostname (von außen / Tailscale / VPN) |
-| `SYNOLOGY_USER` | Secret | SSH-User (z.B. dein Admin-User) |
-| `SYNOLOGY_SSH_KEY` | Secret | Privater SSH-Key (vollständig, inkl. `BEGIN`/`END`) |
-| `SYNOLOGY_PATH` | Secret | Absoluter Pfad zum Clone, z.B. `/volume1/docker/verswerk` |
-| `SYNOLOGY_SSH_PORT` | Secret | Optional, Standard `22` |
-| `GHCR_TOKEN` | Secret | Optional: PAT mit `read:packages`, falls das Image privat ist |
-| `GHCR_USER` | Secret | Optional, Standard `bonzei123` |
+1. GitHub → dein Profil → **Packages** → `verswerk`
+2. Package settings → **Change visibility** → Public  
 
-Öffentlicher Key des Deploy-Keys auf dem NAS in `~/.ssh/authorized_keys` des Users legen.
+Sonst braucht das NAS ein Login (`docker login ghcr.io`) mit einem PAT (`read:packages`).
 
-### 3. Ablauf
+### Alternative: geplanter Task statt Watchtower
 
-1. Du pushst nach `main`
-2. Action baut das Image (nicht auf dem NAS)
-3. Wenn `ENABLE_NAS_DEPLOY=true`: SSH → `docker compose pull` → `up -d`
+Synology **Aufgabenplanung** alle X Minuten:
 
-Manuell auf dem NAS: `./scripts/nas-deploy.sh`
+```bash
+cd /volume1/docker/verswerk && ./scripts/nas-deploy.sh
+```
 
-Ohne SSH kannst du nur den Image-Build nutzen und auf dem NAS z.B. [Watchtower](https://containrrr.dev/watchtower/) das Image beobachten lassen.
+Watchtower-Service dann aus der Compose-Datei weglassen bzw. nicht starten:
+
+```bash
+docker compose up -d verswerk
+```
 
 ## Stack
 

@@ -1,4 +1,4 @@
-name: Build & Deploy NAS
+name: Build image
 
 on:
   push:
@@ -48,33 +48,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  deploy-nas:
-    name: Pull & restart on Synology
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    # Nur wenn Repo → Settings → Variables → ENABLE_NAS_DEPLOY = true
-    if: ${{ vars.ENABLE_NAS_DEPLOY == 'true' }}
-    steps:
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.2.2
-        env:
-          DEPLOY_PATH: ${{ secrets.SYNOLOGY_PATH }}
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          GHCR_USER: ${{ secrets.GHCR_USER }}
-        with:
-          host: ${{ secrets.SYNOLOGY_HOST }}
-          username: ${{ secrets.SYNOLOGY_USER }}
-          key: ${{ secrets.SYNOLOGY_SSH_KEY }}
-          port: ${{ secrets.SYNOLOGY_SSH_PORT }}
-          envs: DEPLOY_PATH,GHCR_TOKEN,GHCR_USER
-          script_stop: true
-          script: |
-            set -eu
-            cd "$DEPLOY_PATH"
-            if [ -n "${GHCR_TOKEN:-}" ]; then
-              echo "$GHCR_TOKEN" | docker login ghcr.io -u "${GHCR_USER:-bonzei123}" --password-stdin
-            fi
-            docker compose pull verswerk
-            docker compose up -d --remove-orphans verswerk
-            docker image prune -f

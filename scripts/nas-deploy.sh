@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Manuell oder per Webhook auf dem NAS ausführen (im Repo-Ordner).
+# Manuell auf dem NAS (Heimnetz/VPN) ausführen.
 set -eu
 
 cd "$(dirname "$0")/.."
@@ -9,6 +9,6 @@ if [ -n "${GHCR_TOKEN:-}" ]; then
 fi
 
 docker compose pull verswerk
-docker compose up -d --remove-orphans verswerk
+docker compose up -d --remove-orphans
 docker image prune -f
 echo "Verswerk neu gestartet auf Port 6997."
