@@ -1,7 +1,7 @@
 services:
   verswerk:
+    image: ghcr.io/bonzei123/verswerk:latest
     build: .
-    image: verswerk:latest
     container_name: verswerk
     ports:
       - "6997:6997"
