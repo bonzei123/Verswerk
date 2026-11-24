@@ -1,0 +1,12 @@
+services:
+  verswerk:
+    build: .
+    image: verswerk:latest
+    container_name: verswerk
+    ports:
+      - "6997:6997"
+    environment:
+      - PORT=6997
+      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
+    restart: unless-stopped
