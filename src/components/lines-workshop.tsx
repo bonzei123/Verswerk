@@ -1,8 +1,9 @@
 "use client";
 
-import { Plus, Search, X } from "lucide-react";
+import { LayoutList, Plus, Search, Users, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { LineBlock } from "@/components/line-block";
+import { RhymeDictionary } from "@/components/rhyme-dictionary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,17 +14,29 @@ import {
 } from "@/lib/line-filters";
 import { analyzeLine } from "@/lib/lyrics";
 import { useStore } from "@/lib/store";
+import type { Line } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+type ViewMode = "list" | "families";
 
 export function LinesWorkshop() {
-  const { ready, store, createLine, lineFocus, clearLineFocus } = useStore();
+  const {
+    ready,
+    store,
+    createLine,
+    lineFocus,
+    clearLineFocus,
+    setLineFocus,
+  } = useStore();
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
   const [syllableFilter, setSyllableFilter] = useState("");
   const [rhymeFilter, setRhymeFilter] = useState("");
   const [sort, setSort] = useState<SortKey>("newest");
   const [onlyPinned, setOnlyPinned] = useState(false);
+  const [view, setView] = useState<ViewMode>("families");
 
-  const preview = analyzeLine(draft);
+  const preview = analyzeLine(draft, store.rhymeOverrides ?? {});
 
   const syllableOptions = useMemo(() => {
     const set = new Set(store.lines.map((l) => l.syllables));
@@ -58,6 +71,20 @@ export function LinesWorkshop() {
     onlyPinned,
   ]);
 
+  const families = useMemo(() => {
+    const map = new Map<string, Line[]>();
+    for (const line of filtered) {
+      const key = line.rhymeKey || "?";
+      const bucket = map.get(key);
+      if (bucket) bucket.push(line);
+      else map.set(key, [line]);
+    }
+    return [...map.entries()].sort((a, b) => {
+      if (b[1].length !== a[1].length) return b[1].length - a[1].length;
+      return a[0].localeCompare(b[0], "de");
+    });
+  }, [filtered]);
+
   if (!ready) {
     return (
       <div className="flex flex-1 items-center justify-center text-[var(--ink-muted)]">
@@ -76,9 +103,9 @@ export function LinesWorkshop() {
           Lines & Reime
         </h2>
         <p className="mt-1 max-w-2xl text-sm text-[var(--ink-muted)]">
-          Hier sammelst und sortierst du Zeilen. Rechtsklick (oder ⋯) auf einen
-          Block öffnet Silben- und Reim-Suchen. Gemerke Lines ziehst du danach im
-          Song-Maker in Strophen.
+          Lines sammeln, nach Reimfamilien ordnen, eigene Aussprache hinterlegen.
+          Rechtsklick (oder ⋯) für Suche und Reim festlegen — danach im Song-Maker
+          zusammensetzen.
         </p>
       </div>
 
@@ -113,15 +140,47 @@ export function LinesWorkshop() {
         </div>
       </form>
 
+      <RhymeDictionary />
+
       <div className="space-y-3 rounded-2xl border border-[var(--ink-faint)] bg-white/70 p-3">
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--ink-muted)]" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Text suchen…"
-            className="h-9 bg-white pl-8"
-          />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--ink-muted)]" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Text suchen…"
+              className="h-9 bg-white pl-8"
+            />
+          </div>
+          <div className="flex rounded-lg border border-[var(--ink-faint)] bg-white p-0.5">
+            <button
+              type="button"
+              onClick={() => setView("families")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs",
+                view === "families"
+                  ? "bg-[var(--accent)] text-white"
+                  : "text-[var(--ink-muted)]",
+              )}
+            >
+              <Users className="size-3.5" />
+              Familien
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("list")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs",
+                view === "list"
+                  ? "bg-[var(--accent)] text-white"
+                  : "text-[var(--ink-muted)]",
+              )}
+            >
+              <LayoutList className="size-3.5" />
+              Liste
+            </button>
+          </div>
         </div>
         <div className="grid gap-2 sm:grid-cols-4">
           <div>
@@ -148,7 +207,7 @@ export function LinesWorkshop() {
             <Input
               value={rhymeFilter}
               onChange={(e) => setRhymeFilter(e.target.value)}
-              placeholder="z.B. ein"
+              placeholder="z.B. it"
               className="h-9 bg-white font-mono"
             />
           </div>
@@ -198,21 +257,55 @@ export function LinesWorkshop() {
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-sm text-[var(--ink-muted)]">
           {filtered.length} von {store.lines.length} Lines
+          {view === "families" ? ` · ${families.length} Familien` : ""}
         </p>
         <p className="text-xs text-[var(--ink-muted)]">
-          Rechtsklick auf einen Block für Silben- & Reim-Suche
+          Rechtsklick: Silben, Reime, Reim festlegen
         </p>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        {filtered.length === 0 ? (
-          <p className="col-span-full py-16 text-center text-sm text-[var(--ink-muted)]">
-            Keine Lines gefunden. Filter lockern oder neue Line anlegen.
-          </p>
-        ) : (
-          filtered.map((line) => <LineBlock key={line.id} line={line} />)
-        )}
-      </div>
+      {filtered.length === 0 ? (
+        <p className="py-16 text-center text-sm text-[var(--ink-muted)]">
+          Keine Lines gefunden. Filter lockern oder neue Line anlegen.
+        </p>
+      ) : view === "list" ? (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {filtered.map((line) => (
+            <LineBlock key={line.id} line={line} />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {families.map(([key, members]) => (
+            <section
+              key={key}
+              className="rounded-2xl border border-[var(--ink-faint)] bg-[var(--panel)]/50 p-3"
+            >
+              <header className="mb-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  className="font-mono text-sm text-[var(--ink)] underline-offset-2 hover:underline"
+                  onClick={() =>
+                    setLineFocus({ mode: "rhyme", rhymeKey: key })
+                  }
+                  title="Nur diese Familie filtern"
+                >
+                  –{key}
+                  <span className="ml-2 font-sans text-[var(--ink-muted)]">
+                    {members.length}{" "}
+                    {members.length === 1 ? "Line" : "Lines"}
+                  </span>
+                </button>
+              </header>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {members.map((line) => (
+                  <LineBlock key={line.id} line={line} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

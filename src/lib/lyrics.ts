@@ -273,20 +273,37 @@ function orthographicEnding(word: string): string {
   return key;
 }
 
-/**
- * Phonetic rhyme key for the last word of a line.
- * "Beat" → it, "Lied" → it, "Flow" → o, "zeigen" → aiken (approx).
- */
-export function extractRhymeKey(text: string): string {
+export type RhymeOverrides = Record<string, string>;
+
+/** Last content word of a line, normalized. */
+export function lastWordOf(text: string): string {
   const words = text.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return "";
+  return normalizeWord(words[words.length - 1]!);
+}
 
-  const last = normalizeWord(words[words.length - 1]!);
+/** Built-in / orthographic key without user overrides. */
+export function autoRhymeKeyForWord(word: string): string {
+  const w = normalizeWord(word);
+  if (!w) return "";
+  if (LOANWORD_RHYME[w]) return LOANWORD_RHYME[w]!;
+  return toPhoneticEnding(orthographicEnding(w));
+}
+
+/**
+ * Phonetic rhyme key for the last word of a line.
+ * "Beat" → it, "Lied" → it, "Flow" → o.
+ * User overrides win over the built-in loanword list.
+ */
+export function extractRhymeKey(
+  text: string,
+  overrides: RhymeOverrides = {},
+): string {
+  const last = lastWordOf(text);
   if (!last) return "";
 
-  if (LOANWORD_RHYME[last]) return LOANWORD_RHYME[last]!;
-
-  return toPhoneticEnding(orthographicEnding(last));
+  if (overrides[last]) return toPhoneticEnding(overrides[last]!);
+  return autoRhymeKeyForWord(last);
 }
 
 export function rhymeKeysMatch(a: string, b: string): boolean {
@@ -300,17 +317,27 @@ export function rhymeKeysMatch(a: string, b: string): boolean {
   return false;
 }
 
-export function linesRhyme(a: string, b: string): boolean {
-  return rhymeKeysMatch(extractRhymeKey(a), extractRhymeKey(b));
+export function linesRhyme(
+  a: string,
+  b: string,
+  overrides: RhymeOverrides = {},
+): boolean {
+  return rhymeKeysMatch(
+    extractRhymeKey(a, overrides),
+    extractRhymeKey(b, overrides),
+  );
 }
 
-export function analyzeLine(text: string): {
+export function analyzeLine(
+  text: string,
+  overrides: RhymeOverrides = {},
+): {
   syllables: number;
   rhymeKey: string;
 } {
   const trimmed = text.trim();
   return {
     syllables: countSyllables(trimmed),
-    rhymeKey: extractRhymeKey(trimmed),
+    rhymeKey: extractRhymeKey(trimmed, overrides),
   };
 }

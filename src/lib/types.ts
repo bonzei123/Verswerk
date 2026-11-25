@@ -65,6 +65,8 @@ export interface VerswerkStore {
   activeSongId: string | null;
   /** Lines flagged via context menu for quick use in the Song-Maker */
   pinnedLineIds: string[];
+  /** User rhyme dictionary: normalized word → phonetic key (overrides auto) */
+  rhymeOverrides: Record<string, string>;
 }
 
 export const SECTION_LABELS: Record<SectionKind, string> = {

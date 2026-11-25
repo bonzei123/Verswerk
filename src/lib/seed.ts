@@ -95,5 +95,6 @@ export function createSeedStore(): VerswerkStore {
     midiPatterns,
     activeSongId: song.id,
     pinnedLineIds: [lines[0]!.id, lines[6]!.id],
+    rhymeOverrides: {},
   };
 }

@@ -32,7 +32,18 @@ const EMPTY_STORE: VerswerkStore = {
   midiPatterns: [],
   activeSongId: null,
   pinnedLineIds: [],
+  rhymeOverrides: {},
 };
+
+function withReanalyzedLines(
+  lines: Line[],
+  overrides: Record<string, string>,
+): Line[] {
+  return lines.map((line) => {
+    const { syllables, rhymeKey } = analyzeLine(line.text, overrides);
+    return { ...line, syllables, rhymeKey };
+  });
+}
 
 type StoreApi = {
   ready: boolean;
@@ -43,6 +54,8 @@ type StoreApi = {
   setLineFocus: (focus: LineFocus) => void;
   clearLineFocus: () => void;
   togglePinLine: (id: string) => void;
+  setRhymeOverride: (word: string, key: string) => void;
+  removeRhymeOverride: (word: string) => void;
   createSong: (title: string) => void;
   setActiveSong: (id: string) => void;
   updateSong: (id: string, patch: Partial<Pick<Song, "title" | "artist" | "bpm" | "key">>) => void;
@@ -76,15 +89,12 @@ function loadStore(): VerswerkStore {
     if (!raw) return createSeedStore();
     const parsed = JSON.parse(raw) as VerswerkStore;
     if (parsed?.version !== 1) return createSeedStore();
-    // Re-run rhyme/syllable analysis so phonetic key updates apply
-    const lines = (parsed.lines ?? []).map((line) => {
-      const { syllables, rhymeKey } = analyzeLine(line.text);
-      return { ...line, syllables, rhymeKey };
-    });
+    const rhymeOverrides = parsed.rhymeOverrides ?? {};
     return {
       ...parsed,
-      lines,
+      rhymeOverrides,
       pinnedLineIds: parsed.pinnedLineIds ?? [],
+      lines: withReanalyzedLines(parsed.lines ?? [], rhymeOverrides),
     };
   } catch {
     return createSeedStore();
@@ -144,6 +154,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             : [...pinned, id],
         };
       }),
+    setRhymeOverride: (word, key) =>
+      mutate((prev) => {
+        const w = word.trim().toLowerCase().normalize("NFC").replace(/ß/g, "ss").replace(/[^a-zäöü]/g, "");
+        const k = key.trim().toLowerCase().replace(/[^a-zäöü0-9]/g, "");
+        if (!w || !k) return prev;
+        const rhymeOverrides = { ...(prev.rhymeOverrides ?? {}), [w]: k };
+        return {
+          ...prev,
+          rhymeOverrides,
+          lines: withReanalyzedLines(prev.lines, rhymeOverrides),
+        };
+      }),
+    removeRhymeOverride: (word) =>
+      mutate((prev) => {
+        const w = word.trim().toLowerCase().normalize("NFC").replace(/ß/g, "ss").replace(/[^a-zäöü]/g, "");
+        const rhymeOverrides = { ...(prev.rhymeOverrides ?? {}) };
+        delete rhymeOverrides[w];
+        return {
+          ...prev,
+          rhymeOverrides,
+          lines: withReanalyzedLines(prev.lines, rhymeOverrides),
+        };
+      }),
     createSong: (title) => {
       const now = Date.now();
       const song: Song = {
@@ -186,30 +219,48 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         };
       }),
     createLine: (text, tags = []) => {
-      const { syllables, rhymeKey } = analyzeLine(text);
-      const now = Date.now();
-      const line: Line = {
-        id: nanoid(10),
-        text: text.trim(),
-        syllables,
-        rhymeKey,
-        tags,
-        createdAt: now,
-        updatedAt: now,
-      };
-      mutate((prev) => ({ ...prev, lines: [line, ...prev.lines] }));
-      return line;
+      let created: Line | null = null;
+      mutate((prev) => {
+        const { syllables, rhymeKey } = analyzeLine(
+          text,
+          prev.rhymeOverrides ?? {},
+        );
+        const now = Date.now();
+        const line: Line = {
+          id: nanoid(10),
+          text: text.trim(),
+          syllables,
+          rhymeKey,
+          tags,
+          createdAt: now,
+          updatedAt: now,
+        };
+        created = line;
+        return { ...prev, lines: [line, ...prev.lines] };
+      });
+      return created!;
     },
     updateLine: (id, text) => {
-      const { syllables, rhymeKey } = analyzeLine(text);
-      mutate((prev) => ({
-        ...prev,
-        lines: prev.lines.map((l) =>
-          l.id === id
-            ? { ...l, text: text.trim(), syllables, rhymeKey, updatedAt: Date.now() }
-            : l,
-        ),
-      }));
+      mutate((prev) => {
+        const { syllables, rhymeKey } = analyzeLine(
+          text,
+          prev.rhymeOverrides ?? {},
+        );
+        return {
+          ...prev,
+          lines: prev.lines.map((l) =>
+            l.id === id
+              ? {
+                  ...l,
+                  text: text.trim(),
+                  syllables,
+                  rhymeKey,
+                  updatedAt: Date.now(),
+                }
+              : l,
+          ),
+        };
+      });
     },
     deleteLine: (id) =>
       mutate((prev) => ({

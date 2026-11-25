@@ -20,7 +20,7 @@ export function LineLibrary() {
   const [query, setQuery] = useState("");
   const [showPinnedFirst, setShowPinnedFirst] = useState(true);
 
-  const preview = analyzeLine(draft);
+  const preview = analyzeLine(draft, store.rhymeOverrides ?? {});
 
   const filtered = useMemo(() => {
     let list = applyLineFocus(store.lines, lineFocus);

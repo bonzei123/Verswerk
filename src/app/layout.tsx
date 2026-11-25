@@ -32,7 +32,9 @@ export const metadata: Metadata = {
     "Songwriting-Werkstatt: Lines anlegen, zu Strophen puzzeln, nach Reimen und Silben suchen, MIDI-Rhythmen und Basslines hören.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="de"

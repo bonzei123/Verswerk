@@ -1,9 +1,10 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Check, Copy, Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatSongAsText } from "@/lib/song-export";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -11,12 +12,27 @@ export function SongBar() {
   const {
     store,
     activeSong,
+    songSections,
     createSong,
     setActiveSong,
     updateSong,
     deleteSong,
   } = useStore();
   const [draft, setDraft] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  async function copySong() {
+    if (!activeSong) return;
+    const text = formatSongAsText(activeSong, songSections, store.lines);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback: select in a prompt-like textarea
+      window.prompt("Kopieren (Strg/Cmd+C):", text);
+    }
+  }
 
   return (
     <div className="border-b border-[var(--ink-faint)] bg-[var(--panel)]/50">
@@ -30,25 +46,45 @@ export function SongBar() {
               Sektionen puzzeln, MIDI zuweisen — Lines kommen aus der Bibliothek.
             </p>
           </div>
-          <form
-            className="flex gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              createSong(draft || "Neuer Song");
-              setDraft("");
-            }}
-          >
-            <Input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="Song-Titel…"
-              className="h-8 w-40 bg-white sm:w-52"
-            />
-            <Button type="submit" size="sm" className="h-8">
-              <Plus className="size-3.5" />
-              Song
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 bg-white"
+              disabled={!activeSong}
+              onClick={() => void copySong()}
+            >
+              {copied ? (
+                <>
+                  <Check className="size-3.5" /> Kopiert
+                </>
+              ) : (
+                <>
+                  <Copy className="size-3.5" /> Song kopieren
+                </>
+              )}
             </Button>
-          </form>
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                createSong(draft || "Neuer Song");
+                setDraft("");
+              }}
+            >
+              <Input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Song-Titel…"
+                className="h-8 w-40 bg-white sm:w-52"
+              />
+              <Button type="submit" size="sm" className="h-8">
+                <Plus className="size-3.5" />
+                Song
+              </Button>
+            </form>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
