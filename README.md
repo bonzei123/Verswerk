@@ -46,6 +46,15 @@ docker compose pull
 docker compose up -d
 ```
 
+Falls der Name `/verswerk` schon vergeben ist (alte Installation):
+
+```bash
+docker rm -f verswerk
+docker compose up -d
+```
+
+Das Volume bleibt erhalten; nur der alte Container wird entfernt.
+
 ## Auto-Update (Heimnetz)
 
 Push auf `main` → GitHub baut `ghcr.io/bonzei123/verswerk:latest` → Watchtower auf dem NAS pullt (kein öffentliches SSH nötig). Package ggf. auf Public stellen.
