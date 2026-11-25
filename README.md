@@ -2,12 +2,21 @@
 
 Persönliche Songwriting-Werkstatt für Rap und Songtexte.
 
-## Zwei Bereiche
+## Bereiche
 
-1. **Lines & Reime** (`/lines`) — Zeilen anlegen, nach Text/Silben/Reim sortieren und filtern. Rechtsklick (oder ⋯) auf jeden Block: gleiche/ähnliche Silben, gleicher/ähnlicher Reim, für den Song-Maker merken.
-2. **Song-Maker** (`/maker`) — gemerkte und alle Lines aufs Workflow-Brett ziehen, zu Strophe/Refrain/Skit/… zusammensetzen, MIDI-Patterns abspielen.
+1. **Lines & Reime** (`/lines`) — Zeilen, Reim-Familien, eigenes Reim-Wörterbuch, Binnenreime
+2. **Song-Maker** (`/maker`) — Sektionen puzzeln, MIDI-Skizzen, Song als Text kopieren
+3. **Sync** (`/sync`) — lokales Backup/Restore + verschlüsselte Vaults für mehrere Geräte
 
-Daten liegen im Browser (`localStorage`).
+## Datenmodell
+
+| Was | Wo |
+| --- | --- |
+| Arbeitsstand im Browser | `localStorage` |
+| Backup-Datei | JSON-Download (unverschlüsselt) |
+| Multi-Device | Verschlüsselter Vault auf dem Server (`/data/vaults`) |
+
+Vaults: **kein Account**. Slot wählen + Passphrase. Verschlüsselung (AES-GCM, PBKDF2) nur im Browser — der Server speichert Ciphertext. Parallelität: **Optimistic Locking** mit Revisionsnummer; bei Konflikt Merge oder Abbruch.
 
 ## Lokal starten
 
@@ -20,58 +29,27 @@ Dev-Server: [http://localhost:3847](http://localhost:3847)
 
 ## Docker (Synology NAS)
 
-Port **6997**. Produktion nutzt das Image aus dem GitHub Container Registry:
+Port **6997**:
 
 ```bash
 git clone https://github.com/bonzei123/Verswerk.git
 cd Verswerk
+docker compose up --build -d
+```
+
+Volume `verswerk-data` hält die Vaults. App: `http://<nas-ip>:6997`.
+
+Image aus Registry (nach CI-Build):
+
+```bash
+docker compose pull
 docker compose up -d
 ```
 
-Dann `http://<nas-ip>:6997`.
+## Auto-Update (Heimnetz)
 
-Lokal ohne Registry (baut auf der Maschine):
-
-```bash
-docker compose up --build -d verswerk
-```
-
-## Auto-Update ohne öffentliches SSH
-
-Das NAS ist nur im Heimnetz/VPN erreichbar — GitHub kann also nicht per SSH reinkommen. Stattdessen:
-
-1. **Push auf `main`** → GitHub Actions baut und pusht `ghcr.io/bonzei123/verswerk:latest`
-2. **Watchtower auf dem NAS** (im `docker-compose.yml`) prüft alle 5 Minuten GHCR und startet Verswerk neu, wenn ein neues Image da ist
-
-```bash
-docker compose up -d
-```
-
-Das startet `verswerk` + `verswerk-watchtower`.
-
-### GHCR-Package öffentlich machen (einmalig)
-
-Nach dem ersten erfolgreichen Build:
-
-1. GitHub → dein Profil → **Packages** → `verswerk`
-2. Package settings → **Change visibility** → Public  
-
-Sonst braucht das NAS ein Login (`docker login ghcr.io`) mit einem PAT (`read:packages`).
-
-### Alternative: geplanter Task statt Watchtower
-
-Synology **Aufgabenplanung** alle X Minuten:
-
-```bash
-cd /volume1/docker/verswerk && ./scripts/nas-deploy.sh
-```
-
-Watchtower-Service dann aus der Compose-Datei weglassen bzw. nicht starten:
-
-```bash
-docker compose up -d verswerk
-```
+Push auf `main` → GitHub baut `ghcr.io/bonzei123/verswerk:latest` → Watchtower auf dem NAS pullt (kein öffentliches SSH nötig). Package ggf. auf Public stellen.
 
 ## Stack
 
-Next.js (App Router), TypeScript, Tailwind, shadcn/ui, `@dnd-kit`, Tone.js.
+Next.js, TypeScript, Tailwind, shadcn/ui, `@dnd-kit`, Tone.js, Web Crypto.

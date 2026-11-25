@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Figtree, Geist_Mono, Literata, Syne } from "next/font/google";
 import { StoreProvider } from "@/lib/store";
+import { VaultSessionProvider } from "@/lib/vault-session";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -41,7 +42,9 @@ export default function RootLayout({
       className={`${figtree.variable} ${syne.variable} ${literata.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <StoreProvider>{children}</StoreProvider>
+        <StoreProvider>
+          <VaultSessionProvider>{children}</VaultSessionProvider>
+        </StoreProvider>
       </body>
     </html>
   );

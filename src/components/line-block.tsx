@@ -10,7 +10,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { findInternalRhymes } from "@/lib/binnenreime";
 import {
   autoRhymeKeyForWord,
   lastWordOf,
@@ -73,6 +74,10 @@ export function LineBlock({
   const lastWord = lastWordOf(line.text);
   const hasOverride = Boolean(lastWord && store.rhymeOverrides?.[lastWord]);
   const autoKey = lastWord ? autoRhymeKeyForWord(lastWord) : "";
+  const internal = useMemo(
+    () => findInternalRhymes(line.text, store.rhymeOverrides ?? {}),
+    [line.text, store.rhymeOverrides],
+  );
 
   const drag = useDraggable({
     id: `library-${line.id}`,
@@ -288,6 +293,16 @@ export function LineBlock({
                 <Badge variant="outline" className="font-mono text-[10px]">
                   –{line.rhymeKey || "?"}
                 </Badge>
+                {internal.map((g) => (
+                  <Badge
+                    key={g.key}
+                    variant="outline"
+                    className="max-w-full truncate text-[10px]"
+                    title={`Binnenreim –${g.key}: ${g.words.join(", ")}`}
+                  >
+                    Binnen: {g.words.join(" · ")}
+                  </Badge>
+                ))}
                 {hasOverride && (
                   <Badge variant="outline" className="text-[10px]">
                     Wörterbuch

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Library, RotateCcw } from "lucide-react";
+import { Cloud, LayoutGrid, Library, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const LINKS = [
   { href: "/lines", label: "Lines & Reime", icon: Library },
   { href: "/maker", label: "Song-Maker", icon: LayoutGrid },
+  { href: "/sync", label: "Sync", icon: Cloud },
 ] as const;
 
 export function AppNav() {

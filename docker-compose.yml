@@ -9,23 +9,25 @@ services:
       - PORT=6997
       - NODE_ENV=production
       - HOSTNAME=0.0.0.0
+      - VERSWERK_DATA_DIR=/data/vaults
+    volumes:
+      # Verschlüsselte Vaults überleben Container-Updates
+      - verswerk-data:/data
     labels:
-      # Watchtower aktualisiert nur Container mit diesem Label
       - com.centurylinklabs.watchtower.enable=true
     restart: unless-stopped
 
-  # Läuft nur im Heimnetz: prüft regelmäßig GHCR und zieht neue Images
   watchtower:
     image: containrrr/watchtower:latest
     container_name: verswerk-watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      # Alle 5 Minuten prüfen
       - WATCHTOWER_POLL_INTERVAL=300
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_LABEL_ENABLE=true
       - WATCHTOWER_INCLUDE_RESTARTING=true
-      # Falls das GHCR-Package privat ist: Datei .env mit GHCR_TOKEN setzen
-      # und unten die Auth-Zeile einkommentieren / credentials mounten
     restart: unless-stopped
+
+volumes:
+  verswerk-data:

@@ -79,6 +79,9 @@ type StoreApi = {
   updateMidiPattern: (id: string, patch: Partial<MidiPattern>) => void;
   createMidiPattern: (pattern: Omit<MidiPattern, "id">) => MidiPattern;
   resetDemo: () => void;
+  /** Replace entire store (backup restore / vault sync). */
+  replaceStore: (next: VerswerkStore) => void;
+  getStoreSnapshot: () => VerswerkStore;
 };
 
 const StoreContext = createContext<StoreApi | null>(null);
@@ -403,6 +406,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setStore(next);
       persist(next);
     },
+    replaceStore: (next) => {
+      const rhymeOverrides = next.rhymeOverrides ?? {};
+      const normalized: VerswerkStore = {
+        ...next,
+        version: 1,
+        rhymeOverrides,
+        pinnedLineIds: next.pinnedLineIds ?? [],
+        lines: withReanalyzedLines(next.lines ?? [], rhymeOverrides),
+      };
+      setStore(normalized);
+      persist(normalized);
+    },
+    getStoreSnapshot: () => store,
   };
 
   return <StoreContext.Provider value={api}>{children}</StoreContext.Provider>;

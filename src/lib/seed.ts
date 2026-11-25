@@ -18,21 +18,41 @@ function makeLine(text: string, tags: string[] = []): Line {
 }
 
 export function createSeedStore(): VerswerkStore {
+  const l1 = makeLine("Ich schreib die Nacht voll bis der Stift bricht", ["hook"]);
+  const l2 = makeLine("Jede Zeile sitzt, jeder Reim trifft", ["hook"]);
+  const beat = makeLine("Im Studio nur Licht und Beat", ["mood"]);
+  const lied = makeLine("Jeder Hook ein kleines Lied", ["mood"]);
+  const binnen = makeLine(
+    "Ich trinke Bier wie ein Tier am Pier um halb vier",
+    ["binnen"],
+  );
+  const bass = makeLine("Bassline tief wie ein Geheimnis", ["mood"]);
+  const flow1 = makeLine("Flow wie Puzzle, Stein für Stein", ["flow"]);
+  const flow2 = makeLine("Strophe für Strophe, alles mein", ["flow"]);
+  const hook1 = makeLine("Refrain bleibt hängen im Ohr", ["hook"]);
+  const hook2 = makeLine("Morgen noch lauter als zuvor", ["hook"]);
+  const skitLine = makeLine("Skit: Ja digga, hörst du das?", ["skit"]);
+  const meta1 = makeLine("Silben zählen, Reime jagen", ["meta"]);
+  const meta2 = makeLine("Achtzehn Takte, keine Frage", ["meta"]);
+  const story1 = makeLine("Von der Demo bis zum Master", ["story"]);
+  const story2 = makeLine("Schneller als der Beat, noch knapper", ["story"]);
+
   const lines: Line[] = [
-    makeLine("Ich schreib die Nacht voll bis der Stift bricht", ["hook"]),
-    makeLine("Jede Zeile sitzt, jeder Reim trifft", ["hook"]),
-    makeLine("Im Studio nur Licht und Beat", ["mood"]),
-    makeLine("Jeder Hook ein kleines Lied", ["mood"]),
-    makeLine("Bassline tief wie ein Geheimnis", ["mood"]),
-    makeLine("Flow wie Puzzle, Stein für Stein", ["flow"]),
-    makeLine("Strophe für Strophe, alles mein", ["flow"]),
-    makeLine("Refrain bleibt hängen im Ohr", ["hook"]),
-    makeLine("Morgen noch lauter als zuvor", ["hook"]),
-    makeLine("Skit: Ja digga, hörst du das?", ["skit"]),
-    makeLine("Silben zählen, Reime jagen", ["meta"]),
-    makeLine("Achtzehn Takte, keine Frage", ["meta"]),
-    makeLine("Von der Demo bis zum Master", ["story"]),
-    makeLine("Schneller als der Beat, noch knapper", ["story"]),
+    l1,
+    l2,
+    beat,
+    lied,
+    binnen,
+    bass,
+    flow1,
+    flow2,
+    hook1,
+    hook2,
+    skitLine,
+    meta1,
+    meta2,
+    story1,
+    story2,
   ];
 
   const midiPatterns: MidiPattern[] = PRESET_PATTERNS.map((p) => ({
@@ -48,7 +68,7 @@ export function createSeedStore(): VerswerkStore {
     id: nanoid(10),
     kind: "intro",
     title: "Intro",
-    lineIds: [lines[2]!.id, lines[3]!.id],
+    lineIds: [beat.id, lied.id],
     midiPatternId: boomBap.id,
   };
 
@@ -56,7 +76,7 @@ export function createSeedStore(): VerswerkStore {
     id: nanoid(10),
     kind: "strophe",
     title: "Strophe 1",
-    lineIds: [lines[0]!.id, lines[1]!.id, lines[4]!.id, lines[5]!.id],
+    lineIds: [l1.id, l2.id, flow1.id, flow2.id],
     midiPatternId: rootBass.id,
   };
 
@@ -64,7 +84,7 @@ export function createSeedStore(): VerswerkStore {
     id: nanoid(10),
     kind: "refrain",
     title: "Refrain",
-    lineIds: [lines[6]!.id, lines[7]!.id],
+    lineIds: [hook1.id, hook2.id],
     midiPatternId: boomBap.id,
   };
 
@@ -72,7 +92,7 @@ export function createSeedStore(): VerswerkStore {
     id: nanoid(10),
     kind: "skit",
     title: "Skit",
-    lineIds: [lines[8]!.id],
+    lineIds: [skitLine.id, binnen.id],
     midiPatternId: midiPatterns.find((p) => p.name === "Skit Click")!.id,
   };
 
@@ -94,7 +114,7 @@ export function createSeedStore(): VerswerkStore {
     sections: [intro, strophe1, refrain, skit],
     midiPatterns,
     activeSongId: song.id,
-    pinnedLineIds: [lines[0]!.id, lines[6]!.id],
+    pinnedLineIds: [l1.id, hook1.id],
     rhymeOverrides: {},
   };
 }
