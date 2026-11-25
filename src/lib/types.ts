@@ -10,6 +10,16 @@ export type SectionKind =
 
 export type MidiKind = "drums" | "bass" | "melody" | "fx";
 
+/** Scale used by the piano-roll / pitch palette. */
+export type MidiScaleId =
+  | "chromatic"
+  | "major"
+  | "minor"
+  | "harmonicMinor"
+  | "dorian"
+  | "pentatonicMinor"
+  | "blues";
+
 export interface Line {
   id: string;
   text: string;
@@ -33,9 +43,19 @@ export interface MidiPattern {
   name: string;
   kind: MidiKind;
   bpm: number;
-  /** 16 steps × channels. Drums: kick/snare/hat. Bass: note numbers or 0. */
+  /**
+   * Channels × steps.
+   * Drums/FX: 0 = off, 1–127 = velocity.
+   * Bass/Melody: 0 = rest, otherwise MIDI note number.
+   */
   steps: number[][];
   notes: string[];
+  /** Step count (16 or 32). Defaults to steps[0].length. */
+  length?: 16 | 32;
+  /** Root MIDI for scale highlighting (e.g. 36 = C2, 60 = C4). */
+  rootMidi?: number;
+  /** Scale filter for the piano roll. */
+  scaleId?: MidiScaleId;
 }
 
 export interface Song {

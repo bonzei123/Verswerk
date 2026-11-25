@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Cloud, LayoutGrid, Library, RotateCcw } from "lucide-react";
+import { Cloud, LayoutGrid, Library, Music2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const LINKS = [
   { href: "/lines", label: "Lines & Reime", icon: Library },
   { href: "/maker", label: "Song-Maker", icon: LayoutGrid },
+  { href: "/midi", label: "MIDI", icon: Music2 },
   { href: "/sync", label: "Sync", icon: Cloud },
 ] as const;
 
@@ -26,7 +27,7 @@ export function AppNav() {
               Verswerk
             </h1>
             <p className="hidden text-xs text-[var(--ink-muted)] group-hover:text-[var(--accent)] sm:block">
-              Lines sammeln · Songs puzzeln
+              Lines · Songs · MIDI
             </p>
           </Link>
           <nav className="flex gap-1 rounded-xl border border-[var(--ink-faint)] bg-white/70 p-1">

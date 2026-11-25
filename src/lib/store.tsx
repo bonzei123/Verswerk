@@ -78,6 +78,8 @@ type StoreApi = {
   ) => void;
   updateMidiPattern: (id: string, patch: Partial<MidiPattern>) => void;
   createMidiPattern: (pattern: Omit<MidiPattern, "id">) => MidiPattern;
+  duplicateMidiPattern: (id: string) => MidiPattern | null;
+  deleteMidiPattern: (id: string) => void;
   resetDemo: () => void;
   /** Replace entire store (backup restore / vault sync). */
   replaceStore: (next: VerswerkStore) => void;
@@ -400,6 +402,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         midiPatterns: [...prev.midiPatterns, created],
       }));
       return created;
+    },
+    duplicateMidiPattern: (id) => {
+      let created: MidiPattern | null = null;
+      mutate((prev) => {
+        const source = prev.midiPatterns.find((p) => p.id === id);
+        if (!source) return prev;
+        created = {
+          ...structuredClone(source),
+          id: nanoid(10),
+          name: `${source.name} Kopie`,
+        };
+        return {
+          ...prev,
+          midiPatterns: [...prev.midiPatterns, created],
+        };
+      });
+      return created;
+    },
+    deleteMidiPattern: (id) => {
+      mutate((prev) => ({
+        ...prev,
+        midiPatterns: prev.midiPatterns.filter((p) => p.id !== id),
+        sections: prev.sections.map((s) =>
+          s.midiPatternId === id ? { ...s, midiPatternId: null } : s,
+        ),
+      }));
     },
     resetDemo: () => {
       const next = createSeedStore();

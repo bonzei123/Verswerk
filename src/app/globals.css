@@ -156,3 +156,8 @@
     box-shadow: 0 0 0 6px rgba(15, 118, 110, 0);
   }
 }
+
+.midi-roll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}

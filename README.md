@@ -5,8 +5,9 @@ Persönliche Songwriting-Werkstatt für Rap und Songtexte.
 ## Bereiche
 
 1. **Lines & Reime** (`/lines`) — Zeilen, Reim-Familien, eigenes Reim-Wörterbuch, Binnenreime
-2. **Song-Maker** (`/maker`) — Sektionen puzzeln, MIDI-Skizzen, Song als Text kopieren
-3. **Sync** (`/sync`) — lokales Backup/Restore + verschlüsselte Vaults für mehrere Geräte
+2. **Song-Maker** (`/maker`) — Sektionen puzzeln, Patterns zuweisen, Song als Text kopieren
+3. **MIDI** (`/midi`) — Piano-Roll mit Tonhöhe, Skalen, Drums mit Velocity, 16/32 Steps
+4. **Sync** (`/sync`) — lokales Backup/Restore + verschlüsselte Vaults für mehrere Geräte
 
 ## Datenmodell
 

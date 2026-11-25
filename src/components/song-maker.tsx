@@ -13,7 +13,7 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import { useMemo, useState } from "react";
 import { LineLibrary } from "@/components/line-library";
-import { MidiStudio } from "@/components/midi-studio";
+import { MidiPatternDock } from "@/components/midi-pattern-dock";
 import { SongBar } from "@/components/song-bar";
 import { WorkflowBoard } from "@/components/workflow-board";
 import { useStore } from "@/lib/store";
@@ -154,7 +154,7 @@ export function SongMaker() {
             <WorkflowBoard />
           </div>
           <div className="min-h-[360px] rounded-2xl border border-[var(--ink-faint)] bg-[var(--panel)]/60 p-3 lg:min-h-0 lg:max-h-[calc(100vh-12rem)]">
-            <MidiStudio />
+            <MidiPatternDock />
           </div>
         </main>
         <DragOverlay>
