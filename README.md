@@ -40,25 +40,26 @@ docker compose up --build -d
 
 Volume `verswerk-data` hält die Vaults. App: `http://<nas-ip>:6997`.
 
-Image aus Registry (nach CI-Build):
+## Auto-Update (Heimnetz)
+
+Nach dem **einmaligen** `docker compose up -d` musst du nichts mehr anfassen.
+
+Push auf `main` → GitHub baut `ghcr.io/bonzei123/verswerk:latest` → **Watchtower** pullt und ersetzt den Container (kein `docker rm`, kein erneutes `compose up`). Package ggf. auf Public stellen.
+
+Manuell nur, wenn Watchtower nicht läuft:
 
 ```bash
+cd /volume2/docker/Verswerk   # dein Compose-Ordner
 docker compose pull
 docker compose up -d
 ```
 
-Falls der Name `/verswerk` schon vergeben ist (alte Installation):
+Einmalig, falls noch ein alter Container namens `verswerk` von früher läuft:
 
 ```bash
 docker rm -f verswerk
 docker compose up -d
 ```
-
-Das Volume bleibt erhalten; nur der alte Container wird entfernt.
-
-## Auto-Update (Heimnetz)
-
-Push auf `main` → GitHub baut `ghcr.io/bonzei123/verswerk:latest` → Watchtower auf dem NAS pullt (kein öffentliches SSH nötig). Package ggf. auf Public stellen.
 
 ## Stack
 
