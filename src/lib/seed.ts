@@ -22,6 +22,7 @@ export function createSeedStore(): VerswerkStore {
     makeLine("Ich schreib die Nacht voll bis der Stift bricht", ["hook"]),
     makeLine("Jede Zeile sitzt, jeder Reim trifft", ["hook"]),
     makeLine("Im Studio nur Licht und Beat", ["mood"]),
+    makeLine("Jeder Hook ein kleines Lied", ["mood"]),
     makeLine("Bassline tief wie ein Geheimnis", ["mood"]),
     makeLine("Flow wie Puzzle, Stein für Stein", ["flow"]),
     makeLine("Strophe für Strophe, alles mein", ["flow"]),

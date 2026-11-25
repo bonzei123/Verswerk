@@ -1,4 +1,4 @@
-import { linesRhyme } from "./lyrics";
+import { linesRhyme, rhymeKeysMatch } from "./lyrics";
 import type { Line, LineFocus } from "./types";
 
 export type SortKey = "newest" | "oldest" | "syllables-asc" | "syllables-desc" | "rhyme" | "text";
@@ -16,15 +16,15 @@ export function applyLineFocus(lines: Line[], focus: LineFocus): Line[] {
     case "rhyme":
       return lines.filter(
         (l) =>
-          l.rhymeKey === focus.rhymeKey ||
-          l.rhymeKey.toLowerCase() === focus.rhymeKey.toLowerCase(),
+          l.id === focus.sourceLineId ||
+          rhymeKeysMatch(l.rhymeKey, focus.rhymeKey),
       );
     case "rhyme-near":
       return lines.filter(
         (l) =>
           l.id === focus.sourceLineId ||
-          linesRhyme(focus.rhymeKey, l.text) ||
-          l.rhymeKey === focus.rhymeKey,
+          rhymeKeysMatch(l.rhymeKey, focus.rhymeKey) ||
+          linesRhyme(focus.rhymeKey, l.text),
       );
     default:
       return lines;

@@ -76,8 +76,14 @@ function loadStore(): VerswerkStore {
     if (!raw) return createSeedStore();
     const parsed = JSON.parse(raw) as VerswerkStore;
     if (parsed?.version !== 1) return createSeedStore();
+    // Re-run rhyme/syllable analysis so phonetic key updates apply
+    const lines = (parsed.lines ?? []).map((line) => {
+      const { syllables, rhymeKey } = analyzeLine(line.text);
+      return { ...line, syllables, rhymeKey };
+    });
     return {
       ...parsed,
+      lines,
       pinnedLineIds: parsed.pinnedLineIds ?? [],
     };
   } catch {
