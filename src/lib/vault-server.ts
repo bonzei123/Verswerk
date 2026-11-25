@@ -15,32 +15,35 @@ export type VaultRecord = VaultMeta & {
   ciphertext: string;
 };
 
+/** Statically scoped under cwd/data so Turbopack does not trace the whole repo. */
 function dataDir(): string {
-  return process.env.VERSWERK_DATA_DIR || path.join(process.cwd(), "data", "vaults");
+  return path.join(/*turbopackIgnore: true*/ process.cwd(), "data", "vaults");
 }
 
 async function ensureDir(): Promise<string> {
   const dir = dataDir();
-  await mkdir(dir, { recursive: true });
+  await mkdir(/*turbopackIgnore: true*/ dir, { recursive: true });
   return dir;
 }
 
 function fileFor(id: string): string {
-  // Prevent path traversal
   if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
     throw new Error("Ungültige Vault-ID");
   }
-  return path.join(dataDir(), `${id}.json`);
+  return path.join(/*turbopackIgnore: true*/ dataDir(), `${id}.json`);
 }
 
 export async function listVaults(): Promise<VaultMeta[]> {
   const dir = await ensureDir();
-  const files = await readdir(dir);
+  const files = await readdir(/*turbopackIgnore: true*/ dir);
   const metas: VaultMeta[] = [];
   for (const f of files) {
     if (!f.endsWith(".json")) continue;
     try {
-      const raw = await readFile(path.join(dir, f), "utf8");
+      const raw = await readFile(
+        /*turbopackIgnore: true*/ path.join(/*turbopackIgnore: true*/ dir, f),
+        "utf8",
+      );
       const rec = JSON.parse(raw) as VaultRecord;
       metas.push({
         id: rec.id,
@@ -58,7 +61,7 @@ export async function listVaults(): Promise<VaultMeta[]> {
 export async function getVault(id: string): Promise<VaultRecord | null> {
   await ensureDir();
   try {
-    const raw = await readFile(fileFor(id), "utf8");
+    const raw = await readFile(/*turbopackIgnore: true*/ fileFor(id), "utf8");
     return JSON.parse(raw) as VaultRecord;
   } catch {
     return null;
@@ -83,7 +86,11 @@ export async function createVault(input: {
     revision: 1,
     updatedAt: Date.now(),
   };
-  await writeFile(fileFor(rec.id), JSON.stringify(rec, null, 2), "utf8");
+  await writeFile(
+    /*turbopackIgnore: true*/ fileFor(rec.id),
+    JSON.stringify(rec, null, 2),
+    "utf8",
+  );
   return rec;
 }
 
@@ -118,10 +125,13 @@ export async function putVault(
     updatedAt: Date.now(),
   };
 
-  // Atomic-ish write
   const target = fileFor(id);
   const tmp = `${target}.${process.pid}.tmp`;
-  await writeFile(tmp, JSON.stringify(next, null, 2), "utf8");
-  await rename(tmp, target);
+  await writeFile(
+    /*turbopackIgnore: true*/ tmp,
+    JSON.stringify(next, null, 2),
+    "utf8",
+  );
+  await rename(/*turbopackIgnore: true*/ tmp, /*turbopackIgnore: true*/ target);
   return { ok: true, record: next };
 }

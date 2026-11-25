@@ -17,19 +17,21 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=6997
 ENV HOSTNAME=0.0.0.0
-ENV VERSWERK_DATA_DIR=/data/vaults
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs \
-  && mkdir -p /data/vaults \
-  && chown -R nextjs:nodejs /data
+  && mkdir -p /app/data/vaults \
+  && chown -R nextjs:nodejs /app/data
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Persist vaults under cwd/data (see vault-server.ts)
+RUN mkdir -p ./data/vaults && chown -R nextjs:nodejs ./data
+
 USER nextjs
 EXPOSE 6997
-VOLUME ["/data"]
+VOLUME ["/app/data"]
 
 CMD ["node", "server.js"]

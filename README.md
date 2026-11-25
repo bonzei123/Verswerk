@@ -14,7 +14,7 @@ Persönliche Songwriting-Werkstatt für Rap und Songtexte.
 | --- | --- |
 | Arbeitsstand im Browser | `localStorage` |
 | Backup-Datei | JSON-Download (unverschlüsselt) |
-| Multi-Device | Verschlüsselter Vault auf dem Server (`/data/vaults`) |
+| Multi-Device | Verschlüsselter Vault auf dem Server (`/app/data/vaults`) |
 
 Vaults: **kein Account**. Slot wählen + Passphrase. Verschlüsselung (AES-GCM, PBKDF2) nur im Browser — der Server speichert Ciphertext. Parallelität: **Optimistic Locking** mit Revisionsnummer; bei Konflikt Merge oder Abbruch.
 

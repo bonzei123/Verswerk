@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { getVault, putVault } from "@/lib/vault-server";
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, ctx: Ctx) {

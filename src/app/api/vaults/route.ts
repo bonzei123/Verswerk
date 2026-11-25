@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { createVault, listVaults } from "@/lib/vault-server";
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
 export async function GET() {
   try {
     const vaults = await listVaults();
